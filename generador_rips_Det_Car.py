@@ -121,9 +121,8 @@ if uploaded_file is not None:
                                 errores.append(f"Factura {factura}: Sin datos")
                                 continue
                             
-                            # Convertir a CSV CON ENCABEZADOS
-                            # Usar StringIO para asegurar formato correcto
-                            csv_string = df_filtrado.to_csv(index=False, sep=',', encoding='utf-8', lineterminator='\n')
+                            # Convertir a CSV SIN ENCABEZADOS
+                            csv_string = df_filtrado.to_csv(index=False, sep=',', encoding='utf-8', lineterminator='\n', header=False)
                             csv_bytes = csv_string.encode('utf-8')
                             
                             # Crear nombre del archivo (limpiar caracteres no válidos)
@@ -187,6 +186,6 @@ st.markdown("""
 - **Carátula**: Lee la hoja "Caratula", número de factura en columna B (2)
 - Los archivos se generan con el formato: `RS_{numero_factura}_{Archivo_Det/Car}.txt`
 - El separador utilizado es la coma (`,`)
-- **Todos los archivos incluyen encabezados (cabezote)**
+- **Los archivos NO incluyen encabezados (solo datos)**
 - Todos los archivos se descargan en un archivo ZIP
 """)
