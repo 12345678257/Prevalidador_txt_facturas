@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 import os
-from io import BytesIO
+from io import BytesIO, StringIO
 import zipfile
 
 st.set_page_config(page_title="Generador de Archivos RIPS", page_icon="📄", layout="centered")
@@ -25,14 +25,16 @@ if uploaded_file is not None:
         # Determinar el nombre de la hoja y la columna según el tipo seleccionado
         if tipo_archivo == "Detalle":
             nombre_hoja = "Detalle"
-            columna_factura = 7  # Columna 8 (índice 7)
+            columna_factura_nombre = "H"  # Columna 8
+            columna_factura_index = 7  # Índice 7 (columna H)
             prefijo_archivo = "Archivo_Det"
-            st.info(f"📋 Procesando hoja: **{nombre_hoja}** | Número de factura en columna **H (8)**")
+            st.info(f"📋 Procesando hoja: **{nombre_hoja}** | Número de factura en columna **{columna_factura_nombre} (columna 8)**")
         else:  # Carátula
             nombre_hoja = "Caratula"
-            columna_factura = 1  # Columna 2 (índice 1)
+            columna_factura_nombre = "B"  # Columna 2
+            columna_factura_index = 1  # Índice 1 (columna B)
             prefijo_archivo = "Archivo_Car"
-            st.info(f"📋 Procesando hoja: **{nombre_hoja}** | Número de factura en columna **B (2)**")
+            st.info(f"📋 Procesando hoja: **{nombre_hoja}** | Número de factura en columna **{columna_factura_nombre} (columna 2)**")
         
         # Leer el archivo Excel
         df = pd.read_excel(uploaded_file, sheet_name=nombre_hoja)
@@ -40,6 +42,24 @@ if uploaded_file is not None:
         st.success(f"✅ Archivo cargado exitosamente: {uploaded_file.name}")
         st.write(f"**Total de filas:** {len(df)}")
         st.write(f"**Total de columnas:** {len(df.columns)}")
+        
+        # Mostrar las columnas disponibles
+        with st.expander("🔍 Ver columnas disponibles"):
+            for i, col in enumerate(df.columns):
+                st.text(f"Columna {i} ({chr(65+i) if i < 26 else 'Z+'}): {col}")
+        
+        # Verificar que la columna existe
+        if columna_factura_index >= len(df.columns):
+            st.error(f"❌ La columna {columna_factura_nombre} no existe en la hoja {nombre_hoja}")
+            st.stop()
+        
+        # Obtener el nombre de la columna de factura
+        nombre_columna_factura = df.columns[columna_factura_index]
+        st.write(f"**Columna de factura:** {nombre_columna_factura}")
+        
+        # Mostrar valores únicos en la columna de factura
+        valores_factura = df.iloc[:, columna_factura_index].dropna().unique()
+        st.write(f"**Facturas encontradas:** {len(valores_factura)}")
         
         # Mostrar vista previa
         with st.expander("👁️ Ver vista previa de los datos"):
@@ -52,14 +72,10 @@ if uploaded_file is not None:
                 # Crear un buffer de memoria para el archivo ZIP
                 zip_buffer = BytesIO()
                 
-                # Limpiar valores nulos y obtener facturas únicas
-                df_limpio = df.dropna(subset=[df.columns[columna_factura]])
-                facturas_unicas = df_limpio.iloc[:, columna_factura].unique()
+                # Obtener facturas únicas (sin valores nulos)
+                facturas_unicas = df.iloc[:, columna_factura_index].dropna().unique()
                 
-                # Eliminar valores NaN de las facturas únicas
-                facturas_unicas = [f for f in facturas_unicas if pd.notna(f)]
-                
-                st.write(f"📊 Facturas únicas encontradas: {len(facturas_unicas)}")
+                st.write(f"📊 Procesando {len(facturas_unicas)} facturas únicas...")
                 
                 archivos_generados = []
                 errores = []
@@ -68,23 +84,26 @@ if uploaded_file is not None:
                     for factura in facturas_unicas:
                         try:
                             # Filtrar los datos por número de factura
-                            df_filtrado = df[df.iloc[:, columna_factura] == factura]
+                            df_filtrado = df[df.iloc[:, columna_factura_index] == factura].copy()
                             
                             if len(df_filtrado) == 0:
+                                errores.append(f"Factura {factura}: Sin datos")
                                 continue
                             
-                            # Convertir a CSV en memoria (separado por comas, CON encabezados)
-                            csv_buffer = BytesIO()
-                            df_filtrado.to_csv(csv_buffer, index=False, sep=',', encoding='utf-8', header=True)
-                            csv_content = csv_buffer.getvalue()
+                            # Convertir a CSV CON ENCABEZADOS
+                            # Usar StringIO para asegurar formato correcto
+                            csv_string = df_filtrado.to_csv(index=False, sep=',', encoding='utf-8', line_terminator='\n')
+                            csv_bytes = csv_string.encode('utf-8')
                             
                             # Crear nombre del archivo (limpiar caracteres no válidos)
-                            factura_limpia = str(factura).replace('/', '_').replace('\\', '_').strip()
+                            factura_limpia = str(factura).replace('/', '_').replace('\\', '_').replace(' ', '_').strip()
                             nombre_archivo = f"RS_{factura_limpia}_{prefijo_archivo}.txt"
                             
                             # Agregar al ZIP
-                            zip_file.writestr(nombre_archivo, csv_content)
+                            zip_file.writestr(nombre_archivo, csv_bytes)
                             archivos_generados.append(nombre_archivo)
+                            
+                            st.text(f"✓ Generado: {nombre_archivo} ({len(df_filtrado)} filas)")
                         
                         except Exception as e:
                             errores.append(f"Error con factura {factura}: {str(e)}")
@@ -97,7 +116,7 @@ if uploaded_file is not None:
                     
                     # Mostrar errores si los hay
                     if len(errores) > 0:
-                        with st.expander(f"⚠️ Errores encontrados ({len(errores)})"):
+                        with st.expander(f"⚠️ Advertencias ({len(errores)})"):
                             for error in errores:
                                 st.warning(error)
                     
@@ -118,11 +137,14 @@ if uploaded_file is not None:
                     if len(errores) > 0:
                         st.write("**Errores encontrados:**")
                         for error in errores:
-                            st.warning(error)
+                            st.error(error)
     
     except Exception as e:
         st.error(f"❌ Error al procesar el archivo: {str(e)}")
         st.info("💡 Verifique que el archivo Excel contenga la hoja correcta y tenga el formato esperado.")
+        import traceback
+        with st.expander("Ver detalles del error"):
+            st.code(traceback.format_exc())
 else:
     st.info("👆 Por favor, cargue un archivo Excel para comenzar")
 
@@ -134,5 +156,6 @@ st.markdown("""
 - **Carátula**: Lee la hoja "Caratula", número de factura en columna B (2)
 - Los archivos se generan con el formato: `RS_{numero_factura}_{Archivo_Det/Car}.txt`
 - El separador utilizado es la coma (`,`)
+- **Todos los archivos incluyen encabezados (cabezote)**
 - Todos los archivos se descargan en un archivo ZIP
 """)
