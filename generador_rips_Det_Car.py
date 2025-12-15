@@ -4,9 +4,9 @@ import os
 from io import BytesIO, StringIO
 import zipfile
 
-st.set_page_config(page_title="Generador de Archivos RIPS", page_icon="📄", layout="centered")
+st.set_page_config(page_title="Prevalidador_de_archivos_ST", page_icon="📄", layout="centered")
 
-st.title("📄 Generador de Archivos RIPS")
+st.title("📄 Prevalidador_de_archivos_ST")
 st.markdown("---")
 
 # Selector de tipo de archivo
