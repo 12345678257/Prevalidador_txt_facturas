@@ -46,7 +46,23 @@ if uploaded_file is not None:
         # Mostrar las columnas disponibles
         with st.expander("🔍 Ver columnas disponibles"):
             for i, col in enumerate(df.columns):
-                st.text(f"Columna {i} ({chr(65+i) if i < 26 else 'Z+'}): {col}")
+                letra = chr(65+i) if i < 26 else f"Col{i}"
+                st.text(f"Columna {i} ({letra}): {col}")
+        
+        # Opción para cambiar la columna manualmente
+        st.markdown("---")
+        usar_columna_manual = st.checkbox("🔧 Cambiar columna de factura manualmente", value=False)
+        
+        if usar_columna_manual:
+            columna_factura_index = st.number_input(
+                "Número de columna (0 = A, 1 = B, 2 = C, etc.)",
+                min_value=0,
+                max_value=len(df.columns)-1,
+                value=columna_factura_index
+            )
+            st.info(f"Usando columna {columna_factura_index} ({df.columns[columna_factura_index]})")
+        
+        st.markdown("---")
         
         # Verificar que la columna existe
         if columna_factura_index >= len(df.columns):
@@ -58,8 +74,23 @@ if uploaded_file is not None:
         st.write(f"**Columna de factura:** {nombre_columna_factura}")
         
         # Mostrar valores únicos en la columna de factura
-        valores_factura = df.iloc[:, columna_factura_index].dropna().unique()
-        st.write(f"**Facturas encontradas:** {len(valores_factura)}")
+        valores_factura_todos = df.iloc[:, columna_factura_index]
+        valores_no_nulos = valores_factura_todos.dropna()
+        valores_unicos = valores_no_nulos.unique()
+        
+        st.write(f"**Total valores en columna:** {len(valores_factura_todos)}")
+        st.write(f"**Valores no nulos:** {len(valores_no_nulos)}")
+        st.write(f"**Facturas únicas encontradas:** {len(valores_unicos)}")
+        
+        # Mostrar una muestra de los valores
+        if len(valores_unicos) > 0:
+            muestra = list(valores_unicos[:5])
+            st.write(f"**Muestra de facturas:** {muestra}")
+        else:
+            st.warning("⚠️ No se encontraron facturas en esta columna. Verifique que la columna correcta.")
+            # Mostrar las primeras filas de la columna
+            with st.expander("Ver primeros valores de la columna de factura"):
+                st.write(df.iloc[:10, columna_factura_index])
         
         # Mostrar vista previa
         with st.expander("👁️ Ver vista previa de los datos"):
@@ -92,7 +123,7 @@ if uploaded_file is not None:
                             
                             # Convertir a CSV CON ENCABEZADOS
                             # Usar StringIO para asegurar formato correcto
-                            csv_string = df_filtrado.to_csv(index=False, sep=',', encoding='utf-8', line_terminator='\n')
+                            csv_string = df_filtrado.to_csv(index=False, sep=',', encoding='utf-8', lineterminator='\n')
                             csv_bytes = csv_string.encode('utf-8')
                             
                             # Crear nombre del archivo (limpiar caracteres no válidos)
