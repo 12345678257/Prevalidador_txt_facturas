@@ -4,9 +4,9 @@ import os
 from io import BytesIO, StringIO
 import zipfile
 
-st.set_page_config(page_title="Prevalidador_de_archivos_ST", page_icon="📄", layout="centered")
+st.set_page_config(page_title="Generador de Archivos RIPS", page_icon="📄", layout="centered")
 
-st.title("📄 Prevalidador_de_archivos_ST")
+st.title("📄 Generador de Archivos RIPS")
 st.markdown("---")
 
 # Selector de tipo de archivo
@@ -120,6 +120,12 @@ if uploaded_file is not None:
                             if len(df_filtrado) == 0:
                                 errores.append(f"Factura {factura}: Sin datos")
                                 continue
+                            
+                            # Si es Carátula, convertir fechas a formato DD-MM-AAAA
+                            if tipo_archivo == "Carátula":
+                                for col in df_filtrado.columns:
+                                    if pd.api.types.is_datetime64_any_dtype(df_filtrado[col]):
+                                        df_filtrado[col] = df_filtrado[col].dt.strftime('%d-%m-%Y')
                             
                             # Convertir a CSV SIN ENCABEZADOS
                             csv_string = df_filtrado.to_csv(index=False, sep=',', encoding='utf-8', lineterminator='\n', header=False)
