@@ -25,7 +25,7 @@ if uploaded_file is not None:
         # Determinar el nombre de la hoja y la columna según el tipo seleccionado
         if tipo_archivo == "Detalle":
             nombre_hoja = "Detalle"
-            columna_factura_nombre = "A"  # Columna 1
+            columna_factura_nombre = "H"  # Columna 8
             columna_factura_index = 7  # Índice 7 (columna H)
             prefijo_archivo = "Archivo_Det"
             st.info(f"📋 Procesando hoja: **{nombre_hoja}** | Número de factura en columna **{columna_factura_nombre} (columna 8)**")
