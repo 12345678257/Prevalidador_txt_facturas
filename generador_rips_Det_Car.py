@@ -121,10 +121,11 @@ if uploaded_file is not None:
                                 errores.append(f"Factura {factura}: Sin datos")
                                 continue
                             
-                         # Convertir TODAS las columnas fecha a formato DD-MM-AAAA
-                          for col in df_filtrado.columns:
-                          if pd.api.types.is_datetime64_any_dtype(df_filtrado[col]):
-                          df_filtrado[col] = df_filtrado[col].dt.strftime('%d-%m-%Y')
+                    # Convertir columnas fecha a formato DD-MM-AAAA (Detalle y Carátula)
+for col in df_filtrado.columns:
+    if pd.api.types.is_datetime64_any_dtype(df_filtrado[col]):
+        df_filtrado[col] = df_filtrado[col].dt.strftime('%d-%m-%Y')
+
 
                             
                             # Convertir a CSV SIN ENCABEZADOS
