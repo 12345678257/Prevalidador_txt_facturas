@@ -121,14 +121,19 @@ if uploaded_file is not None:
                                 errores.append(f"Factura {factura}: Sin datos")
                                 continue
                             
-                            # 🔥 AJUSTE ÚNICO: FORMATO FECHA PARA DETALLE Y CARÁTULA
+                            # ✅ FORMATEO SEGURO DE FECHAS (NO TOCA OTROS CAMPOS)
                             for col in df_filtrado.columns:
-    if pd.api.types.is_datetime64_any_dtype(df_filtrado[col]):
-        df_filtrado[col] = df_filtrado[col].dt.strftime('%d-%m-%Y')
-
+                                if pd.api.types.is_datetime64_any_dtype(df_filtrado[col]):
+                                    df_filtrado[col] = df_filtrado[col].dt.strftime('%d-%m-%Y')
                             
                             # Convertir a CSV SIN ENCABEZADOS
-                            csv_string = df_filtrado.to_csv(index=False, sep=',', encoding='utf-8', lineterminator='\n', header=False)
+                            csv_string = df_filtrado.to_csv(
+                                index=False,
+                                sep=',',
+                                encoding='utf-8',
+                                lineterminator='\n',
+                                header=False
+                            )
                             csv_bytes = csv_string.encode('utf-8')
                             
                             # Crear nombre del archivo (limpiar caracteres no válidos)
