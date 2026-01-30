@@ -123,12 +123,9 @@ if uploaded_file is not None:
                             
                             # 🔥 AJUSTE ÚNICO: FORMATO FECHA PARA DETALLE Y CARÁTULA
                             for col in df_filtrado.columns:
-                                try:
-                                    df_filtrado[col] = pd.to_datetime(df_filtrado[col], errors='ignore')
-                                    if pd.api.types.is_datetime64_any_dtype(df_filtrado[col]):
-                                        df_filtrado[col] = df_filtrado[col].dt.strftime('%d-%m-%Y')
-                                except:
-                                    pass
+    if pd.api.types.is_datetime64_any_dtype(df_filtrado[col]):
+        df_filtrado[col] = df_filtrado[col].dt.strftime('%d-%m-%Y')
+
                             
                             # Convertir a CSV SIN ENCABEZADOS
                             csv_string = df_filtrado.to_csv(index=False, sep=',', encoding='utf-8', lineterminator='\n', header=False)
