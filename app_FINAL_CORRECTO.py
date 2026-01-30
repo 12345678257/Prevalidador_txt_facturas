@@ -23,7 +23,7 @@ with st.sidebar:
     **Formato de salida:**
     - Cada fila = 1 archivo TXT
     - Campos separados por `,` (coma)
-    - Fechas en formato DD/MM/YYYY
+    - Fechas en formato DD-MM-YYYY
     - Nombre: `RS_{NumFactura}_Archivo_DET_{#}.txt`
     
     **Ejemplo:**
@@ -48,15 +48,15 @@ with st.sidebar:
 
 # Función para formatear fecha
 def format_date(date_value):
-    """Convierte fecha a formato DD/MM/YYYY"""
+    """Convierte fecha a formato DD-MM-YYYY"""
     if pd.isna(date_value):
         return ""
     if isinstance(date_value, datetime):
-        return date_value.strftime("%d/%m/%Y")
+        return date_value.strftime("%d-%m-%Y")
     if isinstance(date_value, str):
         try:
             dt = pd.to_datetime(date_value)
-            return dt.strftime("%d/%m/%Y")
+            return dt.strftime("%d-%m-%Y")
         except:
             return str(date_value)
     return str(date_value)
@@ -257,7 +257,7 @@ else:
     
     **Contenido:**
     ```
-    98353,FEEV,04/09/2025,1001198272,CC,31366-2547915007,8641050003,,1,938709,938709,0,0,90300,0,0,0,848409,0,04/09/2025,RESECCIONDETUMORBENIGNODEPIEL...
+    98353,FEEV,04-09-2025,1001198272,CC,31366-2547915007,8641050003,,1,938709,938709,0,0,90300,0,0,0,848409,0,04-09-2025,RESECCIONDETUMORBENIGNODEPIEL...
     ```
     """)
 
