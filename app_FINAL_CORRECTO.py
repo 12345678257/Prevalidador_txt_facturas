@@ -52,11 +52,11 @@ def format_date(date_value):
     if pd.isna(date_value):
         return ""
     if isinstance(date_value, datetime):
-        return date_value.strftime("%d-%m-%Y")
+        return date_value.strftime("%d/%m/%Y")
     if isinstance(date_value, str):
         try:
             dt = pd.to_datetime(date_value)
-            return dt.strftime("%d-%m-%Y")
+            return dt.strftime("%d/%m/%Y")
         except:
             return str(date_value)
     return str(date_value)
