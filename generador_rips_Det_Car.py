@@ -124,7 +124,7 @@ if uploaded_file is not None:
                             # ✅ FORMATEO SEGURO DE FECHAS (NO TOCA OTROS CAMPOS)
                             for col in df_filtrado.columns:
                                 if pd.api.types.is_datetime64_any_dtype(df_filtrado[col]):
-                                    df_filtrado[col] = df_filtrado[col].dt.strftime('%d-%m-%Y')
+                                    df_filtrado[col] = df_filtrado[col].dt.strftime('%d/%m/%Y')
                             
                             # Convertir a CSV SIN ENCABEZADOS
                             csv_string = df_filtrado.to_csv(
